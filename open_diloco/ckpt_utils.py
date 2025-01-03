@@ -4,6 +4,7 @@ import torch
 from torch.distributed.checkpoint.state_dict import get_state_dict, set_state_dict
 import torch.distributed.checkpoint as dcp
 import os
+from torch.distributed.checkpoint._fsspec_filesystem import FsspecReader, FsspecWriter
 from torchdata.stateful_dataloader import StatefulDataLoader
 from fsspec.generic import GenericFileSystem
 from hivemind.optim.optimizer import logger
@@ -71,7 +72,7 @@ def save_checkpoint(
     rank = int(os.environ["RANK"])
 
     # 1. Save distributed states
-    fs_storage_writer = dcp.FsspecWriter(checkpoint_path, sync_files=False)
+    fs_storage_writer = FsspecWriter(checkpoint_path, sync_files=False)
     # for some reason sync_files = True try to call stream.fileno which is not supported with gcp ffspec storage.
 
     model_state_dict, optimizer_state_dict = get_state_dict(model, optimizer)
@@ -124,7 +125,7 @@ def load_checkpoint(
     """
     rank = int(os.environ["RANK"])
     # 1. Load distributed states
-    fs_storage_reader = dcp.FsspecReader(checkpoint_path)
+    fs_storage_reader = FsspecReader(checkpoint_path)
 
     model_state_dict, optimizer_state_dict = get_state_dict(model, optimizer)
     dcp_state_dict = {

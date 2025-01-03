@@ -104,7 +104,7 @@ class HvConfig(BaseConfig):
 class Config(BaseConfig):
     path_model: str = "PrimeIntellect/llama-150m-fresh"
     torch_compile: bool = True
-    attn_implementation: str = "sdpa"
+    attn_implementation: str = "flash_attention_2"
     # Data
     dataset_name_or_path: str = "allenai/c4"
     seq_length: int = 1024

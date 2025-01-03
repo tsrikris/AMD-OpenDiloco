@@ -58,14 +58,14 @@ echo "Initial peer: $INITIAL_PEER"
 mkdir -p logs
 
 # Execute the command for the first device and log the output, run in background
-CUDA_VISIBLE_DEVICES=$(get_cuda_devices $NUM_GPU 0) torchrun --nproc_per_node=$NUM_GPU --nnodes=1 train_fsdp.py --hv.initial-peers $INITIAL_PEER $@ --hv.world-rank 0 --hv.galaxy-size $N  > logs/log0 2>&1 &
+HIP_VISIBLE_DEVICES=$(get_cuda_devices $NUM_GPU 0) torchrun --nproc_per_node=$NUM_GPU --nnodes=1 open_diloco/train_fsdp.py --hv.initial-peers $INITIAL_PEER $@ --hv.world-rank 0 --hv.galaxy-size $N  > logs/log0 2>&1 &
 # Wait for 1 second before continuing with the rest
 sleep 2
 
 # Loop from 1 to N-1 and execute the command with different CUDA_VISIBLE_DEVICES and seed values, logging each command's output, run each in background
 for i in $(seq 1 $(($N - 1)))
 do
-  WANDB_MODE=disabled CUDA_VISIBLE_DEVICES=$(get_cuda_devices $NUM_GPU $i) torchrun --nproc_per_node=$NUM_GPU --rdzv-endpoint localhost:123$i --nnodes=1 train_fsdp.py --hv.initial-peers $INITIAL_PEER $@ --hv.world-rank $i --hv.galaxy-size $N > logs/log$i 2>&1 &
+  WANDB_MODE=disabled HIP_VISIBLE_DEVICES=$(get_cuda_devices $NUM_GPU $i) torchrun --nproc_per_node=$NUM_GPU --rdzv-endpoint localhost:123$i --nnodes=1 open_diloco/train_fsdp.py --hv.initial-peers $INITIAL_PEER $@ --hv.world-rank $i --hv.galaxy-size $N > logs/log$i 2>&1 &
 done
 
 tail -f logs/log0
